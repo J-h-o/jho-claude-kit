@@ -46,8 +46,8 @@ The levels:
 
 The rules live in [`rules/craft.md`](rules/craft.md). Edit that one file to change them everywhere: the main session, `/jira-task`, and every subagent.
 
-The statusline shows `[CRAFT:FULL]` and similar. The linked-files installer sets it up unless you already have a statusline. Otherwise, or as a plugin, add it yourself:
-`"statusLine": { "type": "command", "command": "node \"<kit path>/hooks/craft.js\" --statusline" }`
+The active level shows as `[CRAFT:FULL]` and similar. The plugin pins it under the prompt by itself. The linked-files installer puts it in your statusline instead, unless you already have one; then add it to yours:
+`node "<kit path>/hooks/craft.js" --statusline`
 
 ## Agents
 
@@ -61,5 +61,6 @@ The statusline shows `[CRAFT:FULL]` and similar. The linked-files installer sets
 ## Develop
 
 ```bash
-node --test
+node --test tests/*.test.js
+claude plugin test .
 ```
