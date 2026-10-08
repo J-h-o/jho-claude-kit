@@ -32,9 +32,13 @@ function writeLevel(level) {
   fs.writeFileSync(modePath, level);
 }
 
+// rules/craft.md describes every level as a `- <level>:` line; keep only the active one.
 function rulesContext(level) {
-  return `Craft mode is on (level: ${level}). Follow these rules for all code work.\n\n`
-    + fs.readFileSync(RULES_PATH, 'utf8');
+  const rules = fs.readFileSync(RULES_PATH, 'utf8')
+    .split('\n')
+    .filter((line) => !/^- (lite|full|strict)\b/.test(line) || line.startsWith(`- ${level}`))
+    .join('\n');
+  return `Craft mode is on (level: ${level}). Follow these rules for all code work.\n\n${rules}`;
 }
 
 function emit(hookEventName, additionalContext) {

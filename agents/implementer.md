@@ -18,4 +18,5 @@ Do not commit, push, or create branches.
 Report:
 - Status: DONE, or BLOCKED with the reason.
 - Files changed, one line each.
-- The verification commands you ran and their actual pass/fail output, trimmed.
+- TDD evidence: the failing test run from step 1 (the assertion that failed) and the passing run after step 2, both trimmed.
+- The verification commands from step 4 and their actual results.

@@ -53,6 +53,13 @@ test('/craft <level> persists the level and re-injects the rules', () => {
   assert.match(contextOf(run({ hook_event_name: 'SessionStart' })), /level: strict/);
 });
 
+test('only the active level is described', () => {
+  const context = contextOf(run(prompt('/craft strict')));
+
+  assert.match(context, /^- strict:/m);
+  assert.doesNotMatch(context, /^- (lite|full)\b/m);
+});
+
 test('the plugin-namespaced command works and is case-insensitive', () => {
   run(prompt('/jho-claude-kit:craft LITE'));
 

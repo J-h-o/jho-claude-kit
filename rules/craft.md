@@ -31,7 +31,7 @@ Nothing in the repo mentions Claude, Claude Code, or AI: no Co-Authored-By trail
 ## Output
 Unless your task specifies a report format: code first, then at most three short lines on what changed, what was skipped, and when to add it. Give full explanations only when asked.
 
-## Levels
-- lite: build what's asked; name the simpler alternative in one line and let the user choose. Light tests for non-trivial logic.
-- full (default): everything above, enforced.
+## Level
+- lite: build what's asked, the way it's asked; name the simpler alternative in one line and let the user choose. Tests for non-trivial logic only.
+- full: everything above, enforced.
 - strict: full, plus challenge the requirement itself, prefer deletion to addition, and re-read your diff against these rules before reporting done.
