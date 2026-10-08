@@ -1,0 +1,17 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "jho-claude-kit",
+  "description": "Joanis Allushi's Claude Code toolkit.",
+  "owner": {
+    "name": "Joanis Allushi",
+    "url": "https://github.com/J-h-o"
+  },
+  "plugins": [
+    {
+      "name": "jho-claude-kit",
+      "description": "Always-on craft rules plus a cost-aware /jira-task workflow.",
+      "source": "./",
+      "category": "productivity"
+    }
+  ]
+}
