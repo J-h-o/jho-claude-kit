@@ -50,7 +50,7 @@ You plan, delegate, verify, and decide. Subagents do all the reading, searching,
 
 A wave with one task runs in this working tree: dispatch the implementer, check its TDD evidence, run its verify command yourself and check the exit code, then commit.
 
-A wave with several tasks runs in parallel, each in its own git worktree that you create yourself. Don't use the Agent tool's worktree isolation. Names come from the ticket key (`<KEY>` below, such as HER-123) and the task number `<n>`, and never mention any tool.
+A wave with several tasks runs in parallel, each in its own git worktree that you create yourself. Don't use the Agent tool's worktree isolation. Every main-session turn re-reads your whole context, so chain each step's commands for the whole wave into one Bash call: one call to create all the worktrees, one to check and cherry-pick, and one to clean up. Names come from the ticket key (`<KEY>` below, such as HER-123) and the task number `<n>`, and never mention any tool.
 1. Record the wave's base with `git rev-parse HEAD`.
 2. For each task, create a worktree next to the repo, never inside it: `git worktree add -b <KEY>/task-<n> ../<repo>-worktrees/<KEY>-task-<n> HEAD`. If the feature branch is named exactly `<KEY>`, git can't also create `<KEY>/…` branches, so use `<KEY>-task-<n>` as the branch name instead. If the repo has `node_modules` (or `.venv`), link it in: `ln -s "$PWD/node_modules" ../<repo>-worktrees/<KEY>-task-<n>/node_modules`.
 3. Dispatch every implementer in the wave in a single message. Give each one the absolute path of its worktree.
