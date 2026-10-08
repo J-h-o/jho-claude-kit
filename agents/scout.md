@@ -13,5 +13,4 @@ Report in under 250 words:
 - Existing helpers, patterns, and test files the implementer should reuse or follow.
 - The commands this project uses for tests, lint, and typecheck, if you saw them.
 
-When the request asks for evidence only, return `path:line` with the verbatim lines and no interpretation or conclusions.
 Do not modify anything.
