@@ -17,7 +17,7 @@ Given review findings instead of a new task? Address each finding, test-first wh
 Stay inside the task's scope. If the spec is ambiguous or contradicts the code, stop and report the question instead of guessing.
 Do not commit, push, or create branches.
 
-Report in under 150 words:
+Aim for under 200 words. Never cut evidence or a problem to fit; say what you left out instead:
 - Status: DONE, or BLOCKED with the reason.
 - Files changed, one line each.
 - TDD evidence: the failing test run from step 1 (the assertion that failed) and the passing run after step 2, both trimmed.

@@ -13,7 +13,7 @@ Find out what is actually happening, with evidence. Don't fix it.
 - If the bug only shows up somewhere you can't drive (another browser, a device, production), say so right away and list exactly what to ask the user for: logs, versions, steps.
 - Keep raw output out of your report: no screenshots, full logs, or source dumps. Quote only the lines that prove a point.
 
-Report in under 300 words:
+Aim for under 300 words. Keep every piece of evidence that changes the conclusion, and list anything relevant you left out:
 - Root cause, or the ranked hypotheses with what would confirm each one.
 - Evidence: commands run and the key output lines, `path:line` references.
 - Steps to reproduce.
