@@ -2,7 +2,7 @@
 name: implementer
 description: Implements one well-specified task with TDD. Use only when the task names the files, the behavior, and how to verify it.
 model: haiku
-effort: medium
+effort: high
 ---
 Follow the craft rules in your context.
 

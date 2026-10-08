@@ -46,7 +46,7 @@ The statusline shows `[CRAFT:FULL]` and similar. The linked-files installer sets
 | Agent | Model | Job |
 |---|---|---|
 | `scout` | Haiku, low effort | Read-only search. Returns `file:line` conclusions, not file dumps. |
-| `implementer` | Haiku, medium effort | One well-specified task, test-first. |
+| `implementer` | Haiku, high effort | One well-specified task, test-first. |
 | `reviewer` | Opus, high effort | Reviews the diff against the acceptance criteria and the craft rules. |
 
 ## Develop
