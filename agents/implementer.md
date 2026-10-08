@@ -12,11 +12,13 @@ Implement exactly the task you were given, test first:
 3. Refactor while green.
 4. Run the tests for the touched area, plus lint and typecheck.
 
+Given review findings instead of a new task? Address each finding, test-first where it changes behavior, and say how you resolved it.
+
 Stay inside the task's scope. If the spec is ambiguous or contradicts the code, stop and report the question instead of guessing.
 Do not commit, push, or create branches.
 
-Report:
+Report in under 150 words:
 - Status: DONE, or BLOCKED with the reason.
 - Files changed, one line each.
 - TDD evidence: the failing test run from step 1 (the assertion that failed) and the passing run after step 2, both trimmed.
-- The verification commands from step 4 and their actual results.
+- The verification commands from step 4 with their exit codes. Anything but exit 0 is not DONE.

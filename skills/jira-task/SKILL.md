@@ -9,13 +9,15 @@ Ticket (title, description, acceptance criteria; images may be attached to the m
 $ARGUMENTS
 
 If no ticket content is above or attached, ask me to paste it and stop.
+One ticket per session: everything from earlier work stays in this context and makes every turn more expensive. If this session already handled a ticket, recommend a new session before you start.
 This skill is the whole process: don't load brainstorming, planning, or subagent-execution process skills on top of it.
 The craft rules in your context apply to every phase, and subagents receive them automatically. If they are not in your context (craft mode is off), tell me and ask whether to run `/craft full` first.
 
 ## Your role: orchestrator only
 You plan, delegate, verify, and decide. Subagents do all the reading, searching, debugging, browsing, and coding, because everything you do yourself stays in this large, expensive context for the rest of the run.
-- A guard hook enforces this: your Read, Grep, Glob, Edit, Write, web, and browser calls are denied for the rest of this session. Don't route around it with Bash. Use Bash only for git and verify commands, and trim their output (for example `| tail -40`).
+- A guard hook enforces this for the rest of this session. Your Read, Grep, Glob, Edit, Write, web, and browser calls are denied, and Bash is limited to git and test/build runners. Trim their output (for example `| tail -40`).
 - When you need a fact, ask a subagent a precise question and use its answer.
+- Browser work, including checking a fix in the running app, always goes to an `investigator`.
 - If I want you to work directly, I'll end the run with `/jira-task done`.
 
 | Need | Delegate to |
@@ -44,16 +46,17 @@ You plan, delegate, verify, and decide. Subagents do all the reading, searching,
 - Create the branch.
 - For each task, dispatch one `implementer`. Paste into its prompt the full task spec, the relevant transcribed image details, and the verify commands. It has no other context.
 - Run tasks one after another. Run them in parallel only when they touch disjoint files.
-- Check its TDD evidence, then run its verify command yourself. Don't trust the report alone.
+- Check its TDD evidence, then run its verify command yourself and check the exit code. Don't trust the report alone.
+- If tasks that ran in parallel break each other, send the integration fix to an implementer.
 - Escalation, one step at a time: two failed attempts on Haiku → re-dispatch with `model: sonnet` → then with `model: opus` → then stop and ask me. A task that fails because the spec was wrong goes back to planning, not up the ladder.
 - After each verified task, commit in the repo's commit-message style with the ticket key.
 
 ## 5. Verify
-- Run the full test suite, lint, and typecheck with trimmed output. Send failures to an implementer.
+- Run the full test suite, lint, and typecheck with trimmed output, and check each exit code. Send failures to an implementer.
 
 ## 6. Review
 - Dispatch `reviewer` on the branch diff against the base, with the acceptance criteria.
-- Send blockers and should-fixes to an implementer. Re-run verification. Re-review only if the fixes were substantial.
+- Send blockers and should-fixes to an implementer as one batch of findings. Re-run verification. Re-review only if the fixes were substantial.
 
 ## 7. Report
 - What changed, mapped to the acceptance criteria.

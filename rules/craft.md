@@ -23,7 +23,7 @@ Senior-engineer discipline for every change. The best code is the code you didn'
 Input validation at trust boundaries, error handling that prevents data loss, security, secrets kept out of logs, accessibility basics, and anything explicitly requested. If the user insists on the full version, build it.
 
 ## Done means verified
-Run the tests, lint, and typecheck that cover the change, and quote the actual result. If the repo's baseline is already red, compare against that baseline and gate on the files you changed. Never claim success you haven't seen.
+Run the tests, lint, and typecheck that cover the change, and quote the actual result. A run passes only if the command exits 0; pass counts alone don't prove it. If the repo's baseline is already red, compare against that baseline and gate on the files you changed. Never claim success you haven't seen.
 
 ## Attribution
 Nothing in the repo mentions Claude, Claude Code, or AI: no Co-Authored-By trailers, no "generated with" lines, no references in code, comments, commits, branch names, or PR text.

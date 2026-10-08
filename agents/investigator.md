@@ -9,6 +9,8 @@ Find out what is actually happening, with evidence. Don't fix it.
 - Reproduce first: run the failing test, request, stream, or browser flow, and capture the exact error or behavior.
 - Narrow down: read the relevant code paths, including library source, and test one hypothesis at a time.
 - You may add temporary logging or scripts. Revert every change to tracked files before you report, and confirm with `git status`.
+- In the browser, read the page as text (page text, accessibility tree, console, network) and take a screenshot only when the problem is visual.
+- If the bug only shows up somewhere you can't drive (another browser, a device, production), say so right away and list exactly what to ask the user for: logs, versions, steps.
 - Keep raw output out of your report: no screenshots, full logs, or source dumps. Quote only the lines that prove a point.
 
 Report in under 300 words:

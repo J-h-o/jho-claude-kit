@@ -82,20 +82,56 @@ test('an unsafe session id is ignored, never used as a path', () => {
   assert.equal(run(toolCall({ session_id: '../../escape' })), '');
 });
 
+const bash = (command, extra = {}) => toolCall({ tool_name: 'Bash', tool_input: { command }, ...extra });
+
+test('during a run, the main session may run git and verify commands', () => {
+  run(prompt('/jira-task HER-123'));
+
+  for (const command of ['git status', 'git diff main --stat', 'npm test 2>&1 | tail -40',
+    'cd app && npx vitest run | grep -E "Test|fail" | head -20', 'mvn -q test', './gradlew test']) {
+    assert.equal(run(bash(command)), '', command);
+  }
+});
+
+test('during a run, Bash cannot be used to read, edit, or probe', () => {
+  run(prompt('/jira-task HER-123'));
+
+  for (const command of ["sed -i 's/a/b/' src/app.ts", 'cat src/app.ts', 'curl -s http://localhost:8080',
+    'python3 -c "print(1)"', 'git diff && cat src/app.ts', 'npm test; node -e "1"',
+    'git log $(cat .env)', 'npm test | xargs rm']) {
+    assert.equal(decision(run(bash(command))).decision, 'deny', command);
+  }
+});
+
+test('Bash is never restricted outside a run or in subagents', () => {
+  assert.equal(run(bash('cat src/app.ts')), '');
+
+  run(prompt('/jira-task HER-123'));
+  assert.equal(run(bash('cat src/app.ts', { agent_id: 'agent-1' })), '');
+});
+
+test('starting a second ticket in the same session recommends a fresh session', () => {
+  assert.equal(run(prompt('/jira-task HER-1')), '');
+
+  const context = JSON.parse(run(prompt('/jira-task HER-2'))).hookSpecificOutput.additionalContext;
+
+  assert.match(context, /new session/);
+});
+
 test('malformed input never blocks anything', () => {
   assert.equal(run('not json'), '');
   assert.equal(run({ hook_event_name: 'Stop', session_id: 's1' }), '');
 });
 
-test('the plugin matcher guards reading, editing and browsing, not delegating', () => {
+test('the plugin matcher guards reading, editing, shell and browsing, not delegating', () => {
   const hooks = JSON.parse(fs.readFileSync(path.join(KIT, 'hooks', 'hooks.json'), 'utf8')).hooks;
   const matcher = new RegExp(`^(?:${hooks.PreToolUse.find((g) => g.matcher).matcher})$`);
 
-  for (const tool of ['Read', 'Grep', 'Glob', 'Edit', 'Write', 'NotebookEdit', 'WebFetch', 'WebSearch',
+  for (const tool of ['Read', 'Grep', 'Glob', 'Edit', 'Write', 'NotebookEdit', 'WebFetch', 'WebSearch', 'Bash',
     'mcp__Claude_Browser__navigate', 'mcp__plugin_playwright_playwright__browser_click', 'mcp__claude-in-chrome__read_page']) {
     assert.match(tool, matcher, tool);
   }
-  for (const tool of ['Bash', 'Agent', 'Skill', 'AskUserQuestion', 'SendMessage', 'mcp__ccd_session__mark_chapter']) {
+  for (const tool of ['Agent', 'Skill', 'AskUserQuestion', 'SendMessage', 'mcp__ccd_session__mark_chapter']) {
     assert.doesNotMatch(tool, matcher, tool);
   }
 });
