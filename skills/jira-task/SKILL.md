@@ -37,19 +37,26 @@ You plan, delegate, verify, and decide. Subagents do all the reading, searching,
 - For a bug, or any behavior you don't yet understand, dispatch an `investigator` for the root cause before you plan. Give it the symptoms, the environment details, and what "fixed" looks like.
 
 ## 3. Plan — stop for my approval
-- Break the work into small tasks. Each one names its files, the behavior, the test to write first, and how to verify it.
+- Break the work into small tasks. Each one names the files it touches (including tests and shared files), the tasks it depends on, the behavior, the test to write first, how to verify it, and its commit message.
 - Map every acceptance criterion to a task.
+- Group the tasks into waves. A wave holds tasks whose dependencies are already done and whose touched files don't overlap, at most 4 per wave. Hotspots never share a wave: package manifests and lockfiles, shared types and barrel/index files, route or DI registries, migrations, i18n files, global config, and shared test setup. When in doubt, put the task in its own wave.
 - Propose a branch name that follows the repo's existing convention (ask a scout) and includes the ticket key.
-- Present the plan and wait for my OK.
+- Present the plan with its waves and wait for my OK.
 
 ## 4. Implement
 - Create the branch.
-- For each task, dispatch one `implementer`. Paste into its prompt the full task spec, the relevant transcribed image details, and the verify commands. It has no other context.
-- Run tasks one after another. Run them in parallel only when they touch disjoint files.
-- Check its TDD evidence, then run its verify command yourself and check the exit code. Don't trust the report alone.
-- If tasks that ran in parallel break each other, send the integration fix to an implementer.
+- Give every implementer the full task spec, the relevant transcribed image details, the verify commands, and the commit message. It has no other context.
 - Escalation, one step at a time: two failed attempts on Haiku → re-dispatch with `model: sonnet` → then with `model: opus` → then stop and ask me. A task that fails because the spec was wrong goes back to planning, not up the ladder.
-- After each verified task, commit in the repo's commit-message style with the ticket key.
+
+A wave with one task runs in this working tree: dispatch the implementer, check its TDD evidence, run its verify command yourself and check the exit code, then commit.
+
+A wave with several tasks runs in parallel, each in its own git worktree that you create yourself. Don't use the Agent tool's worktree isolation. Names come from the ticket key (`<KEY>` below, such as HER-123) and the task number `<n>`, and never mention any tool.
+1. Record the wave's base with `git rev-parse HEAD`.
+2. For each task, create a worktree next to the repo, never inside it: `git worktree add -b <KEY>/task-<n> ../<repo>-worktrees/<KEY>-task-<n> HEAD`. If the feature branch is named exactly `<KEY>`, git can't also create `<KEY>/…` branches, so use `<KEY>-task-<n>` as the branch name instead. If the repo has `node_modules` (or `.venv`), link it in: `ln -s "$PWD/node_modules" ../<repo>-worktrees/<KEY>-task-<n>/node_modules`.
+3. Dispatch every implementer in the wave in a single message. Give each one the absolute path of its worktree.
+4. When all have returned, check that `git status --short` in the main working tree shows nothing new, which proves no one edited it, and check each one's TDD evidence. Then, in plan order, bring each in with `git cherry-pick <base>..<KEY>/task-<n>`. On a conflict, run `git cherry-pick --abort` and re-run that task as a one-task wave once the rest of the wave is in.
+5. Remove every worktree and its branch: `git worktree remove ../<repo>-worktrees/<KEY>-task-<n>`, then `git branch -D <KEY>/task-<n>`.
+6. Run the verify commands for every task in the wave against the combined result, and check the exit codes. Send integration failures to an implementer.
 
 ## 5. Verify
 - Run the full test suite, lint, and typecheck with trimmed output, and check each exit code. Send failures to an implementer.

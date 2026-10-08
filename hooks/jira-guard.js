@@ -19,7 +19,7 @@ const DENY_REASON = 'jira-task run: the orchestrator does not read, search, edit
 const SECOND_TICKET_NOTE = 'This session already ran a /jira-task, and all of its context is carried into this ticket, '
   + 'making every turn more expensive. Before starting, recommend that the user runs this ticket in a new session; '
   + 'continue here only if they say so.';
-const ORCHESTRATOR_COMMANDS = new Set(['git', 'cd', 'ls', 'npm', 'npx', 'pnpm', 'yarn', 'mvn', './mvnw',
+const ORCHESTRATOR_COMMANDS = new Set(['git', 'cd', 'ls', 'ln', 'npm', 'npx', 'pnpm', 'yarn', 'mvn', './mvnw',
   'gradle', './gradlew', 'pytest', 'go', 'cargo', 'make', 'dotnet']);
 const OUTPUT_FILTERS = new Set(['tail', 'head', 'grep', 'wc']);
 

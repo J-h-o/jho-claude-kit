@@ -31,6 +31,11 @@ Use one method, not both. `node install.js --uninstall` removes exactly what the
 | `/jira-task <pasted ticket>` | Run the full ticket workflow. Paste the title, description, acceptance criteria and screenshots in the same message. |
 | `/jira-task done` | End the run's guard, so the main session can read and edit files itself again. |
 
+The plan groups tasks into waves. Tasks in a wave don't share files or dependencies, and they run in parallel, each in its own git worktree, before being merged back one at a time.
+- Worktrees live next to the repo, in `<repo>-worktrees/<KEY>-task-<n>`, on branches named `<KEY>/task-<n>`.
+- They're removed after each wave.
+- `node_modules` is linked in rather than reinstalled.
+
 During a `/jira-task` run, a guard hook stops the main session from reading, searching, editing or browsing. Every attempt is refused with a pointer to the right subagent. This keeps tool output out of the expensive main context; subagents are never blocked.
 
 The levels:

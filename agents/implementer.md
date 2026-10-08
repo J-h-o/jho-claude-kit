@@ -15,7 +15,7 @@ Implement exactly the task you were given, test first:
 Given review findings instead of a new task? Address each finding, test-first where it changes behavior, and say how you resolved it.
 
 Stay inside the task's scope. If the spec is ambiguous or contradicts the code, stop and report the question instead of guessing.
-Do not commit, push, or create branches.
+If your prompt gives you a worktree path, work only inside it: use absolute paths under it for every file, and start every Bash command with `cd <worktree path> &&`. Commit your finished task there with the commit message you were given. Without a worktree path, don't commit. Never push or create branches.
 
 Aim for under 200 words. Never cut evidence or a problem to fit; say what you left out instead:
 - Status: DONE, or BLOCKED with the reason.

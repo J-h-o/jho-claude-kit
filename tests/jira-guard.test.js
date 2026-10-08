@@ -88,6 +88,8 @@ test('during a run, the main session may run git and verify commands', () => {
   run(prompt('/jira-task HER-123'));
 
   for (const command of ['git status', 'git diff main --stat', 'npm test 2>&1 | tail -40',
+    'git worktree add -b HER-123/task-2 ../app-worktrees/HER-123-task-2 HEAD',
+    'ln -s "$PWD/node_modules" ../app-worktrees/HER-123-task-2/node_modules',
     'cd app && npx vitest run | grep -E "Test|fail" | head -20', 'mvn -q test', './gradlew test']) {
     assert.equal(run(bash(command)), '', command);
   }

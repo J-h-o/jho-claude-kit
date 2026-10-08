@@ -97,3 +97,9 @@ test('--statusline shows the active level, and nothing when off', () => {
   fs.writeFileSync(modeFile(), 'off');
   assert.equal(run('', ['--statusline']), '');
 });
+
+test('--statusline shows the lite badge when lite is active', () => {
+  fs.writeFileSync(modeFile(), 'lite');
+
+  assert.equal(run('', ['--statusline']), '[CRAFT:LITE]');
+});
