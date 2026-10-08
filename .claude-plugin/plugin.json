@@ -1,6 +1,6 @@
 {
   "name": "jho-claude-kit",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "description": "Always-on craft rules (TDD, KISS, DRY, YAGNI) plus a /jira-task workflow that routes work across Haiku, Sonnet and Opus.",
   "author": {
     "name": "Joanis Allushi",

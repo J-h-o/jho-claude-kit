@@ -3,11 +3,18 @@
     "SessionStart": [
       { "hooks": [{ "type": "command", "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/craft.js\"", "timeout": 5 }] }
     ],
-    "UserPromptSubmit": [
-      { "hooks": [{ "type": "command", "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/craft.js\"", "timeout": 5 }] }
-    ],
     "SubagentStart": [
       { "hooks": [{ "type": "command", "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/craft.js\"", "timeout": 5 }] }
+    ],
+    "UserPromptSubmit": [
+      { "hooks": [{ "type": "command", "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/craft.js\"", "timeout": 5 }] },
+      { "hooks": [{ "type": "command", "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/jira-guard.js\"", "timeout": 5 }] }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Read|Grep|Glob|Edit|Write|NotebookEdit|WebFetch|WebSearch|mcp__.*([Bb]rowser|playwright|chrome).*",
+        "hooks": [{ "type": "command", "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/jira-guard.js\"", "timeout": 5 }]
+      }
     ]
   }
 }

@@ -12,12 +12,15 @@ const os = require('node:os');
 const path = require('node:path');
 
 const KIT = __dirname;
-const HOOK_COMMAND = `node "${path.join(KIT, 'hooks', 'craft.js')}"`;
-const STATUSLINE_COMMAND = `${HOOK_COMMAND} --statusline`;
-// Same events as plugin mode, so both install methods behave identically.
-const HOOK_EVENTS = Object.keys(require('./hooks/hooks.json').hooks);
-// Matches this kit's hook from any clone location, so a moved clone replaces its old entries.
-const isCraftHook = (command) => /\/hooks\/craft\.js"$/.test(command ?? '');
+const STATUSLINE_COMMAND = `node "${path.join(KIT, 'hooks', 'craft.js')}" --statusline`;
+// The plugin's own hooks.json with its root resolved to this clone, so both install methods stay identical.
+const PLUGIN_HOOKS = JSON.parse(
+  fs.readFileSync(path.join(KIT, 'hooks', 'hooks.json'), 'utf8').replaceAll('${CLAUDE_PLUGIN_ROOT}', KIT),
+).hooks;
+const KIT_SCRIPTS = [...new Set(Object.values(PLUGIN_HOOKS).flat()
+  .flatMap((group) => group.hooks.map((hook) => hook.command.match(/\/hooks\/([\w-]+\.js)"$/)[1])))];
+// Matches this kit's hooks from any clone location, so a moved clone replaces its old entries.
+const isKitHook = (command) => KIT_SCRIPTS.some((script) => command?.endsWith(`/hooks/${script}"`));
 const isCraftStatusline = (command) => /\/hooks\/craft\.js" --statusline$/.test(command ?? '');
 
 const configDir = process.env.CLAUDE_CONFIG_DIR || path.join(os.homedir(), '.claude');
@@ -64,12 +67,12 @@ function saveSettings(before, after) {
   fs.writeFileSync(settingsPath, `${JSON.stringify(after, null, 2)}\n`);
 }
 
-function withoutCraftHooks(hooks = {}) {
+function withoutKitHooks(hooks = {}) {
   const result = {};
   for (const [event, groups] of Object.entries(hooks)) {
     const kept = groups
       .map((group) => Array.isArray(group.hooks)
-        ? { ...group, hooks: group.hooks.filter((hook) => !isCraftHook(hook.command)) }
+        ? { ...group, hooks: group.hooks.filter((hook) => !isKitHook(hook.command)) }
         : group)
       .filter((group) => !Array.isArray(group.hooks) || group.hooks.length > 0);
     if (kept.length > 0) result[event] = kept;
@@ -85,9 +88,9 @@ function install() {
   }
 
   const before = readSettings();
-  const hooks = withoutCraftHooks(before.hooks);
-  for (const event of HOOK_EVENTS) {
-    hooks[event] = [...(hooks[event] ?? []), { hooks: [{ type: 'command', command: HOOK_COMMAND, timeout: 5 }] }];
+  const hooks = withoutKitHooks(before.hooks);
+  for (const [event, groups] of Object.entries(PLUGIN_HOOKS)) {
+    hooks[event] = [...(hooks[event] ?? []), ...groups];
   }
   const after = { ...before, hooks };
 
@@ -112,7 +115,7 @@ function uninstall() {
   }
 
   const before = readSettings();
-  const after = { ...before, hooks: withoutCraftHooks(before.hooks) };
+  const after = { ...before, hooks: withoutKitHooks(before.hooks) };
   if (Object.keys(after.hooks).length === 0) delete after.hooks;
   if (isCraftStatusline(after.statusLine?.command)) delete after.statusLine;
   saveSettings(before, after);

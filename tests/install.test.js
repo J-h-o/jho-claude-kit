@@ -8,7 +8,10 @@ const path = require('node:path');
 const KIT = path.join(__dirname, '..');
 const SCRIPT = path.join(KIT, 'install.js');
 const CRAFT = path.join(KIT, 'hooks', 'craft.js');
-const EVENTS = ['SessionStart', 'UserPromptSubmit', 'SubagentStart'];
+// What plugin mode registers, with the plugin root resolved to this clone.
+const PLUGIN_HOOKS = JSON.parse(
+  fs.readFileSync(path.join(KIT, 'hooks', 'hooks.json'), 'utf8').replaceAll('${CLAUDE_PLUGIN_ROOT}', KIT),
+).hooks;
 let configDir;
 
 beforeEach(() => {
@@ -25,8 +28,8 @@ function install(...args) {
 const settingsPath = () => path.join(configDir, 'settings.json');
 const readSettings = () => JSON.parse(fs.readFileSync(settingsPath(), 'utf8'));
 const writeSettings = (settings) => fs.writeFileSync(settingsPath(), JSON.stringify(settings));
-const craftCommands = (settings, event) =>
-  (settings.hooks?.[event] ?? []).flatMap((group) => group.hooks).filter((h) => h.command.includes(CRAFT));
+const kitGroups = (settings, event) =>
+  (settings.hooks?.[event] ?? []).filter((group) => group.hooks?.some((h) => h.command.startsWith(`node "${KIT}/hooks/`)));
 
 test('links every skill and agent into the config dir', () => {
   assert.equal(install().status, 0);
@@ -39,7 +42,7 @@ test('links every skill and agent into the config dir', () => {
   }
 });
 
-test('adds the craft hooks and statusline while keeping existing settings', () => {
+test('registers exactly the plugin hooks and the statusline, keeping existing settings', () => {
   writeSettings({ model: 'opus', hooks: { Stop: [{ hooks: [{ type: 'command', command: 'say done' }] }] } });
 
   assert.equal(install().status, 0);
@@ -47,7 +50,8 @@ test('adds the craft hooks and statusline while keeping existing settings', () =
   const settings = readSettings();
   assert.equal(settings.model, 'opus');
   assert.equal(settings.hooks.Stop[0].hooks[0].command, 'say done');
-  for (const event of EVENTS) assert.equal(craftCommands(settings, event).length, 1);
+  assert.deepEqual(Object.keys(settings.hooks).sort(), ['Stop', ...Object.keys(PLUGIN_HOOKS)].sort());
+  for (const [event, groups] of Object.entries(PLUGIN_HOOKS)) assert.deepEqual(kitGroups(settings, event), groups);
   assert.match(settings.statusLine.command, /craft\.js" --statusline$/);
 });
 

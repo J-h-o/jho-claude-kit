@@ -29,6 +29,9 @@ Use one method, not both. `node install.js --uninstall` removes exactly what the
 |---|---|
 | `/craft lite\|full\|strict\|off` | Switch the craft level. Default is `full`. The level persists across sessions. |
 | `/jira-task <pasted ticket>` | Run the full ticket workflow. Paste the title, description, acceptance criteria and screenshots in the same message. |
+| `/jira-task done` | End the run's guard, so the main session can read and edit files itself again. |
+
+During a `/jira-task` run, a guard hook stops the main session from reading, searching, editing or browsing. Every attempt is refused with a pointer to the right subagent. This keeps tool output out of the expensive main context; subagents are never blocked.
 
 The levels:
 
@@ -46,7 +49,8 @@ The statusline shows `[CRAFT:FULL]` and similar. The linked-files installer sets
 | Agent | Model | Job |
 |---|---|---|
 | `scout` | Haiku, low effort | Read-only search. Returns `file:line` conclusions, not file dumps. |
-| `implementer` | Haiku, high effort | One well-specified task, test-first. |
+| `investigator` | Sonnet, medium effort | Reproduces and debugs, including in the browser. Reports the root cause with evidence. |
+| `implementer` | Haiku, high effort | One well-specified task, test-first. Escalates to Sonnet, then Opus. |
 | `reviewer` | Opus, high effort | Reviews the diff against the acceptance criteria and the craft rules. |
 
 ## Develop
