@@ -125,7 +125,7 @@ test('malformed input never blocks anything', () => {
   assert.equal(run({ hook_event_name: 'Stop', session_id: 's1' }), '');
 });
 
-test('the plugin matcher guards reading, editing, shell and browsing, not delegating', () => {
+test('the plugin matcher guards reading, editing, shell and browsing, not delegating or launching workflows', () => {
   const hooks = JSON.parse(fs.readFileSync(path.join(KIT, 'hooks', 'hooks.json'), 'utf8')).hooks;
   const matcher = new RegExp(`^(?:${hooks.PreToolUse.find((g) => g.matcher).matcher})$`);
 
@@ -133,7 +133,7 @@ test('the plugin matcher guards reading, editing, shell and browsing, not delega
     'mcp__Claude_Browser__navigate', 'mcp__plugin_playwright_playwright__browser_click', 'mcp__claude-in-chrome__read_page']) {
     assert.match(tool, matcher, tool);
   }
-  for (const tool of ['Agent', 'Skill', 'AskUserQuestion', 'SendMessage', 'mcp__ccd_session__mark_chapter']) {
+  for (const tool of ['Agent', 'Workflow', 'Skill', 'AskUserQuestion', 'SendMessage', 'mcp__ccd_session__mark_chapter']) {
     assert.doesNotMatch(tool, matcher, tool);
   }
 });

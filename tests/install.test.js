@@ -31,14 +31,13 @@ const writeSettings = (settings) => fs.writeFileSync(settingsPath(), JSON.string
 const kitGroups = (settings, event) =>
   (settings.hooks?.[event] ?? []).filter((group) => group.hooks?.some((h) => h.command.startsWith(`node "${KIT}/hooks/`)));
 
-test('links every skill and agent into the config dir', () => {
+test('links every skill, agent and workflow into the config dir', () => {
   assert.equal(install().status, 0);
 
-  for (const skill of fs.readdirSync(path.join(KIT, 'skills'))) {
-    assert.equal(fs.realpathSync(path.join(configDir, 'skills', skill)), path.join(KIT, 'skills', skill));
-  }
-  for (const agent of fs.readdirSync(path.join(KIT, 'agents'))) {
-    assert.equal(fs.realpathSync(path.join(configDir, 'agents', agent)), path.join(KIT, 'agents', agent));
+  for (const kind of ['skills', 'agents', 'workflows']) {
+    for (const name of fs.readdirSync(path.join(KIT, kind))) {
+      assert.equal(fs.realpathSync(path.join(configDir, kind, name)), path.join(KIT, kind, name));
+    }
   }
 });
 
@@ -121,6 +120,7 @@ test('--uninstall removes exactly what install added', () => {
   assert.deepEqual(readSettings(), { model: 'opus', hooks: { Stop: [{ hooks: [{ type: 'command', command: 'say done' }] }] } });
   assert.deepEqual(fs.readdirSync(path.join(configDir, 'skills')), []);
   assert.deepEqual(fs.readdirSync(path.join(configDir, 'agents')), []);
+  assert.deepEqual(fs.readdirSync(path.join(configDir, 'workflows')), []);
 });
 
 test('uninstall is idempotent and creates nothing on a clean config dir', () => {
