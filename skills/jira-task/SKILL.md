@@ -43,29 +43,23 @@ You plan, delegate, verify, and decide. Subagents do all the reading, searching,
 - Propose a branch name that follows the repo's existing convention (ask a scout) and includes the ticket key.
 - Present the plan with its waves and wait for my OK.
 
-## 4. Implement
-- Create the branch.
-- Give every implementer the full task spec, the relevant transcribed image details, the verify commands, and the commit message. It has no other context.
-- Escalation, one step at a time: two failed attempts on Haiku → re-dispatch with `model: sonnet` → then with `model: opus` → then stop and ask me. A task that fails because the spec was wrong goes back to planning, not up the ladder.
+## 4. Execute
+- Create the branch, and record its base with `git rev-parse HEAD`.
+- Launch the saved workflow `jira-execute` once (`jho-claude-kit:jira-execute` when the kit is installed as a plugin) with the plan as `args`:
+  ```
+  { key, repoRoot, base, agentPrefix, acceptanceCriteria: [...], imageNotes, fullVerify: [...],
+    waves: [[{ n, title, files: [...], spec, testFirst, verify: [...], commit, criteria: [...] }]] }
+  ```
+  `repoRoot` is this working tree's absolute path. `agentPrefix` is `jho-claude-kit:` when your agent types carry that prefix, otherwise empty. `imageNotes` holds the transcribed image details, `fullVerify` the full test, lint and typecheck commands, and each task's `criteria` the indexes of the acceptance criteria it serves.
+- Don't poll the run; wait for its completion notice. It implements each wave test-first up the Haiku, Sonnet, Opus ladder, brings parallel waves together through detached worktrees, verifies each wave and then the whole change, and has the `reviewer` check the diff.
+- When it returns, remove every path in its `worktrees` with `git worktree remove <path>` in one Bash call.
 
-A wave with one task runs in this working tree: dispatch the implementer, check its TDD evidence, run its verify command yourself and check the exit code, then commit.
+## 5. Handle the result
+- `needsReplan` tasks go back to planning with me. For `needsInvestigation` tasks, dispatch an `investigator` with the reason, then re-plan them. Report `blocked` tasks with their reason and the models tried.
+- Once those are resolved, launch `jira-execute` again with only the waves that didn't finish.
+- Judge the reviewer's findings yourself. Send the valid blockers and should-fixes to one `implementer` as a batch, with this working tree as its worktree path so it commits. Run `fullVerify` and check the exit codes. Re-review only if the fixes were substantial.
 
-A wave with several tasks runs in parallel, each in its own git worktree that you create yourself. Don't use the Agent tool's worktree isolation. Every main-session turn re-reads your whole context, so chain each step's commands for the whole wave into one Bash call: one call to create all the worktrees, one to check and cherry-pick, and one to clean up. Names come from the ticket key (`<KEY>` below, such as HER-123) and the task number `<n>`, and never mention any tool.
-1. Record the wave's base with `git rev-parse HEAD`.
-2. For each task, create a worktree next to the repo, never inside it: `git worktree add -b <KEY>/task-<n> ../<repo>-worktrees/<KEY>-task-<n> HEAD`. If the feature branch is named exactly `<KEY>`, git can't also create `<KEY>/…` branches, so use `<KEY>-task-<n>` as the branch name instead. If the repo has `node_modules` (or `.venv`), link it in: `ln -s "$PWD/node_modules" ../<repo>-worktrees/<KEY>-task-<n>/node_modules`.
-3. Dispatch every implementer in the wave in a single message. Give each one the absolute path of its worktree.
-4. When all have returned, check that `git status --short` in the main working tree shows nothing new, which proves no one edited it, and check each one's TDD evidence. Then, in plan order, bring each in with `git cherry-pick <base>..<KEY>/task-<n>`. On a conflict, run `git cherry-pick --abort` and re-run that task as a one-task wave once the rest of the wave is in.
-5. Remove every worktree and its branch: `git worktree remove ../<repo>-worktrees/<KEY>-task-<n>`, then `git branch -D <KEY>/task-<n>`.
-6. Run the verify commands for every task in the wave against the combined result, and check the exit codes. Send integration failures to an implementer.
-
-## 5. Verify
-- Run the full test suite, lint, and typecheck with trimmed output, and check each exit code. Send failures to an implementer.
-
-## 6. Review
-- Dispatch `reviewer` on the branch diff against the base, with the acceptance criteria.
-- Send blockers and should-fixes to an implementer as one batch of findings. Re-run verification. Re-review only if the fixes were substantial.
-
-## 7. Report
+## 6. Report
 - What changed, mapped to the acceptance criteria.
 - Verification evidence: commands and results.
 - Commits made, and anything left open or worth flagging on the ticket.

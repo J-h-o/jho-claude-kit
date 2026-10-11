@@ -2,10 +2,10 @@
 // Links this kit into ~/.claude without the plugin system, for machines whose
 // policy only allows plugins from approved marketplaces.
 //
-//   node install.js              link skills + agents, register hooks + statusline
+//   node install.js              link skills, agents and workflows, register hooks + statusline
 //   node install.js --uninstall  remove exactly what install added
 //
-// Skills and agents are symlinks, so `git pull` in this repo updates them in place.
+// Skills, agents and workflows are symlinks, so `git pull` in this repo updates them in place.
 
 const fs = require('node:fs');
 const os = require('node:os');
@@ -27,7 +27,7 @@ const configDir = process.env.CLAUDE_CONFIG_DIR || path.join(os.homedir(), '.cla
 const settingsPath = path.join(configDir, 'settings.json');
 
 function links() {
-  return ['skills', 'agents'].flatMap((kind) =>
+  return ['skills', 'agents', 'workflows'].flatMap((kind) =>
     fs.readdirSync(path.join(KIT, kind)).map((name) => ({
       source: path.join(KIT, kind, name),
       target: path.join(configDir, kind, name),
