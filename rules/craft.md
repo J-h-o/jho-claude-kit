@@ -28,6 +28,9 @@ Run the tests, lint, and typecheck that cover the change, and quote the actual r
 ## Attribution
 Nothing in the repo mentions Claude, Claude Code, or AI: no Co-Authored-By trailers, no "generated with" lines, no references in code, comments, commits, branch names, or PR text.
 
+## Delegating
+When you start a `general-purpose` subagent, set its model, because otherwise it inherits yours: `haiku` for mechanical work (running commands, posting text you've already written), `sonnet` for work that needs judgment, and `opus` only for review-grade reasoning.
+
 ## Output
 Unless your task specifies a report format: code first, then at most three short lines on what changed, what was skipped, and when to add it. Give full explanations only when asked.
 
