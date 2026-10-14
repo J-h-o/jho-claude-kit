@@ -8,7 +8,8 @@ const { resolvePluginHooks } = require('../install');
 
 const KIT = path.join(__dirname, '..');
 const SCRIPT = path.join(KIT, 'install.js');
-const CRAFT = path.join(KIT, 'hooks', 'craft.js');
+// Hook commands keep hooks.json's forward slashes after the clone path, on every platform.
+const CRAFT = `${KIT}/hooks/craft.js`;
 // What plugin mode registers, with the plugin root resolved to this clone.
 const PLUGIN_HOOKS = resolvePluginHooks(fs.readFileSync(path.join(KIT, 'hooks', 'hooks.json'), 'utf8'), KIT);
 let configDir;
