@@ -12,16 +12,26 @@ const os = require('node:os');
 const path = require('node:path');
 
 const KIT = __dirname;
-const STATUSLINE_COMMAND = `node "${path.join(KIT, 'hooks', 'craft.js')}" --statusline`;
-// The plugin's own hooks.json with its root resolved to this clone, so both install methods stay identical.
-const PLUGIN_HOOKS = JSON.parse(
-  fs.readFileSync(path.join(KIT, 'hooks', 'hooks.json'), 'utf8').replaceAll('${CLAUDE_PLUGIN_ROOT}', KIT),
-).hooks;
+
+// The plugin's own hooks.json with its root resolved to a clone, so both install methods stay identical.
+// The root goes in after parsing: a Windows path's backslashes are invalid escapes inside JSON text.
+function resolvePluginHooks(hooksJson, root) {
+  const { hooks } = JSON.parse(hooksJson);
+  return Object.fromEntries(Object.entries(hooks).map(([event, groups]) => [event, groups.map((group) => ({
+    ...group,
+    hooks: group.hooks.map((hook) => ({ ...hook, command: hook.command.replaceAll('${CLAUDE_PLUGIN_ROOT}', root) })),
+  }))]));
+}
+
+const PLUGIN_HOOKS = resolvePluginHooks(fs.readFileSync(path.join(KIT, 'hooks', 'hooks.json'), 'utf8'), KIT);
 const KIT_SCRIPTS = [...new Set(Object.values(PLUGIN_HOOKS).flat()
   .flatMap((group) => group.hooks.map((hook) => hook.command.match(/\/hooks\/([\w-]+\.js)"$/)[1])))];
-// Matches this kit's hooks from any clone location, so a moved clone replaces its old entries.
-const isKitHook = (command) => KIT_SCRIPTS.some((script) => command?.endsWith(`/hooks/${script}"`));
-const isCraftStatusline = (command) => /\/hooks\/craft\.js" --statusline$/.test(command ?? '');
+const statuslineCommand = (root) => `node "${root}/hooks/craft.js" --statusline`;
+const STATUSLINE_COMMAND = statuslineCommand(KIT);
+// Match from any clone location and either path separator, so a moved clone replaces its old entries.
+const withForwardSlashes = (command) => (command ?? '').replaceAll('\\', '/');
+const isKitHook = (command) => KIT_SCRIPTS.some((script) => withForwardSlashes(command).endsWith(`/hooks/${script}"`));
+const isCraftStatusline = (command) => withForwardSlashes(command).endsWith('/hooks/craft.js" --statusline');
 
 const configDir = process.env.CLAUDE_CONFIG_DIR || path.join(os.homedir(), '.claude');
 const settingsPath = path.join(configDir, 'settings.json');
@@ -80,6 +90,18 @@ function withoutKitHooks(hooks = {}) {
   return result;
 }
 
+// Windows creates directory junctions without special rights, but file symlinks need Developer Mode.
+function linkInto({ source, target }) {
+  const isDirectory = fs.statSync(source).isDirectory();
+  try {
+    fs.symlinkSync(source, target, isDirectory ? 'junction' : 'file');
+  } catch (error) {
+    if (error.code !== 'EPERM' || process.platform !== 'win32') throw error;
+    throw new Error('Windows refused to create a file symlink. Turn on Developer Mode (Settings > System > For developers) '
+      + 'and run the installer again, or load the kit as a plugin: claude --plugin-dir <this folder>');
+  }
+}
+
 function install() {
   const conflicts = links().filter((link) => occupied(link.target) && !isOurLink(link));
   if (conflicts.length > 0) {
@@ -103,7 +125,7 @@ function install() {
 
   for (const link of links()) {
     fs.mkdirSync(path.dirname(link.target), { recursive: true });
-    if (!isOurLink(link)) fs.symlinkSync(link.source, link.target);
+    if (!isOurLink(link)) linkInto(link);
   }
   saveSettings(before, after);
   console.log(`Installed into ${configDir}. Start a new session to load it.`);
@@ -122,10 +144,14 @@ function uninstall() {
   console.log(`Uninstalled from ${configDir}.`);
 }
 
-try {
-  if (process.argv.includes('--uninstall')) uninstall();
-  else install();
-} catch (error) {
-  console.error(error.message);
-  process.exit(1);
+if (require.main === module) {
+  try {
+    if (process.argv.includes('--uninstall')) uninstall();
+    else install();
+  } catch (error) {
+    console.error(error.message);
+    process.exit(1);
+  }
 }
+
+module.exports = { resolvePluginHooks, statuslineCommand, isKitHook, isCraftStatusline };
