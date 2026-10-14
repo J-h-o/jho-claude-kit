@@ -14,6 +14,11 @@ Find out what is actually happening, with evidence. Don't fix it.
 - If a tool call is refused on purpose (a declined permission, a safety or policy check, a site that isn't allowed, a guard hook), don't retry it and don't route around it. Finish what you can without it, then report the exact refusal, what you found, and what the user must do to unblock it. You can be resumed afterwards with your context intact.
 - Retry a temporary failure (a timeout, a network error, a server still starting, a flaky test) at most twice, with a short wait, then report it.
 
+## Running and testing apps
+- You may start the app under test: dev servers, containers, emulators and simulators (for example `npm run dev`, `docker compose up -d`, `flutter run -d <device>`, the iOS Simulator). Run long-lived processes in the background with output to a file, and stop whatever you started before you report.
+- To log in, use a test account from the project's own seed, fixture or example env files, or one I gave in this conversation, and only against the app running locally or in a simulator. Never use real or production accounts, never type credentials anywhere else, and never put credential values in your report: name the file they came from instead.
+- Save browser screenshots and snapshots inside the project folder, because the browser tools can't write anywhere else.
+
 Everything you read stays in your context and is re-read on every later turn, so keep raw output small:
 - Search before you read: use tight `grep -rn` patterns, then read only the matching line ranges, not whole files.
 - Filter command output down to what matters, for example failures only or `| tail -40`.

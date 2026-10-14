@@ -40,7 +40,17 @@ Opus understands the ticket, explores with scouts and investigators, and plans. 
 
 Workflows are on by default. On Pro, turn them on in `/config`. Approve the plan promptly and don't switch models during a run: either makes the next turn re-read the whole conversation uncached.
 
-During a `/jira-task` run, a guard hook stops the main session from reading, searching, editing or browsing. Every attempt is refused with a pointer to the right subagent. This keeps tool output out of the expensive main context; subagents are never blocked.
+During a `/jira-task` run, a guard hook stops the main session from reading, searching, editing or browsing. Every attempt is refused with a pointer to the right subagent. This keeps tool output out of the expensive main context; subagents are never blocked. The main session keeps git, test/build/app runners (npm, npx, mvn, gradle, pytest, flutter, docker, pm2, ...) and the ordinary shell around them.
+
+### Testing logged-in apps
+Investigators can start web and mobile apps and log in with test accounts from the project's seed, fixture or example env files, against apps running locally or in a simulator only. Claude Code's auto mode has its own safety check, which may still refuse to handle credentials. The kit doesn't change that check, because it's a safety setting. If you want to allow this case, add the following to `~/.claude/settings.json` yourself:
+
+```json
+"autoMode": {
+  "environment": ["$defaults", "Apps under development run locally (localhost, 127.0.0.1, *.localhost) and in iOS/Android simulators. Their test accounts are listed in each project's seed, fixture or example env files and are test-only."],
+  "allow": ["$defaults", "Logging in to an app the user is developing, running locally or in a simulator, with a test account from that project's seed, fixture or example env files, to test it."]
+}
+```
 
 The levels:
 

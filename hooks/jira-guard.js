@@ -2,8 +2,9 @@
 // Jira-task guard: once `/jira-task` starts in a session, the main session may only
 // plan, delegate, and verify. Its read/search/edit/browse calls (selected by the
 // PreToolUse matcher in hooks.json) are denied with a pointer to the right subagent,
-// and Bash is limited to git and test/build runners. Subagent calls carry an
-// agent_id and always pass. `/jira-task done` ends the run.
+// and Bash is limited to git, test/build/app runners and the shell around them
+// (see orchestrator-shell.js). Subagent calls carry an agent_id and always pass.
+// `/jira-task done` ends the run.
 
 const fs = require('node:fs');
 const os = require('node:os');
