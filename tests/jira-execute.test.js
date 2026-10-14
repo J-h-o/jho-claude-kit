@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 
-const SOURCE = fs.readFileSync(path.join(__dirname, '..', 'workflows', 'jira-execute.js'), 'utf8');
+const SOURCE = fs.readFileSync(path.join(__dirname, '..', 'skills', 'jira-task', 'jira-execute.js'), 'utf8');
 const AsyncFunction = Object.getPrototypeOf(async () => {}).constructor;
 
 // Runs the workflow script the way the runtime does: top-level await, a returned value, and these globals.

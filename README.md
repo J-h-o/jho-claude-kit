@@ -14,7 +14,7 @@ My Claude Code toolkit. It has two parts:
 /plugin install jho-claude-kit@jho-claude-kit
 ```
 
-**As linked files.** Use this where policy only allows the official marketplace, because a plugin from this marketplace would be silently turned off there. Skills, agents and the workflow are symlinked into `~/.claude`, so `git pull` updates them:
+**As linked files.** Use this where policy only allows the official marketplace, because a plugin from this marketplace would be silently turned off there. The skill and agent folders are linked into `~/.claude`, so `git pull` updates them:
 
 ```bash
 git clone https://github.com/J-h-o/jho-claude-kit.git
@@ -23,7 +23,7 @@ node jho-claude-kit/install.js
 
 Use one method, not both. `node install.js --uninstall` removes exactly what the installer added. It backs up `settings.json` to `settings.json.bak` before every change. Requires Node 18 or later.
 
-Plugins need Claude Code 2.x; check with `claude --version`. To try the kit for one terminal session without installing anything, start `claude --plugin-dir <path to this clone>`. On Windows, the linked-files installer needs Developer Mode turned on (Settings > System > For developers), because Windows only creates file symlinks with it.
+Plugins need Claude Code 2.x; check with `claude --version`. To try the kit for one terminal session without installing anything, start `claude --plugin-dir <path to this clone>`. On Windows, the installer links folders as junctions, which need no Developer Mode or admin rights.
 
 ## Use
 

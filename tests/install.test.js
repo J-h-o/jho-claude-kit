@@ -31,14 +31,36 @@ const writeSettings = (settings) => fs.writeFileSync(settingsPath(), JSON.string
 const kitGroups = (settings, event) =>
   (settings.hooks?.[event] ?? []).filter((group) => group.hooks?.some((h) => h.command.startsWith(`node "${KIT}/hooks/`)));
 
-test('links every skill, agent and workflow into the config dir', () => {
+test('links each skill folder and the agents folder, never a single file', () => {
   assert.equal(install().status, 0);
 
-  for (const kind of ['skills', 'agents', 'workflows']) {
-    for (const name of fs.readdirSync(path.join(KIT, kind))) {
-      assert.equal(fs.realpathSync(path.join(configDir, kind, name)), path.join(KIT, kind, name));
-    }
+  for (const name of fs.readdirSync(path.join(KIT, 'skills'))) {
+    assert.equal(fs.realpathSync(path.join(configDir, 'skills', name)), path.join(KIT, 'skills', name));
   }
+  assert.equal(fs.realpathSync(path.join(configDir, 'agents', 'jho-claude-kit')), path.join(KIT, 'agents'));
+  assert.equal(fs.existsSync(path.join(configDir, 'workflows')), false);
+});
+
+// Earlier versions linked each agent and the workflow as single files.
+test('replaces the file links of an earlier install', (t) => {
+  const legacy = [
+    ...fs.readdirSync(path.join(KIT, 'agents')).map((name) => ['agents', name]),
+    ['workflows', 'jira-execute.js'],
+  ];
+  try {
+    for (const [kind, name] of legacy) {
+      fs.mkdirSync(path.join(configDir, kind), { recursive: true });
+      fs.symlinkSync(path.join(KIT, kind, name), path.join(configDir, kind, name), 'file');
+    }
+  } catch (error) {
+    if (error.code === 'EPERM') return t.skip('this Windows account cannot create file symlinks');
+    throw error;
+  }
+
+  assert.equal(install().status, 0);
+
+  assert.deepEqual(fs.readdirSync(path.join(configDir, 'agents')), ['jho-claude-kit']);
+  assert.deepEqual(fs.readdirSync(path.join(configDir, 'workflows')), []);
 });
 
 test('registers exactly the plugin hooks and the statusline, keeping existing settings', () => {
@@ -97,17 +119,16 @@ test('re-installing from a moved clone replaces the old hook entries', () => {
   assert.deepEqual(commands, [`node "${CRAFT}"`]);
 });
 
-test('refuses to overwrite a skill or agent it does not own', () => {
+test('refuses to overwrite a skill or agents folder it does not own', () => {
   fs.mkdirSync(path.join(configDir, 'skills', 'jira-task'), { recursive: true });
-  fs.mkdirSync(path.join(configDir, 'agents'));
-  fs.symlinkSync('/nowhere/scout.md', path.join(configDir, 'agents', 'scout.md'));
+  fs.mkdirSync(path.join(configDir, 'agents', 'jho-claude-kit'), { recursive: true });
   writeSettings({ model: 'opus' });
 
   const result = install();
 
   assert.notEqual(result.status, 0);
   assert.match(result.stderr, /jira-task/);
-  assert.match(result.stderr, /scout\.md/);
+  assert.match(result.stderr, /jho-claude-kit/);
   assert.deepEqual(readSettings(), { model: 'opus' });
 });
 
@@ -120,7 +141,6 @@ test('--uninstall removes exactly what install added', () => {
   assert.deepEqual(readSettings(), { model: 'opus', hooks: { Stop: [{ hooks: [{ type: 'command', command: 'say done' }] }] } });
   assert.deepEqual(fs.readdirSync(path.join(configDir, 'skills')), []);
   assert.deepEqual(fs.readdirSync(path.join(configDir, 'agents')), []);
-  assert.deepEqual(fs.readdirSync(path.join(configDir, 'workflows')), []);
 });
 
 test('uninstall is idempotent and creates nothing on a clean config dir', () => {

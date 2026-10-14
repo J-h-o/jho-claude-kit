@@ -47,7 +47,7 @@ You plan, delegate, verify, and decide. Subagents do all the reading, searching,
 
 ## 4. Execute
 - Create the branch, and record its base with `git rev-parse HEAD`.
-- Launch the saved workflow `jira-execute` once (`jho-claude-kit:jira-execute` when the kit is installed as a plugin) with the plan as `args`:
+- Launch the workflow once: call the Workflow tool with `scriptPath` set to the absolute path of `jira-execute.js` in this skill's base directory, and the plan as `args`, a JSON object rather than a string:
   ```
   { key, repoRoot, base, agentPrefix, acceptanceCriteria: [...], imageNotes, fullVerify: [...],
     waves: [[{ n, title, files: [...], spec, testFirst, verify: [...], commit, criteria: [...] }]] }
@@ -58,7 +58,7 @@ You plan, delegate, verify, and decide. Subagents do all the reading, searching,
 
 ## 5. Handle the result
 - `needsReplan` tasks go back to planning with me. For `needsInvestigation` tasks, dispatch an `investigator` with the reason, then re-plan them. Report `blocked` tasks with their reason and the models tried.
-- Once those are resolved, launch `jira-execute` again with only the waves that didn't finish.
+- Once those are resolved, launch `jira-execute.js` again with only the waves that didn't finish.
 - Judge the reviewer's findings yourself. Send the valid blockers and should-fixes to one `implementer` as a batch, with this working tree as its worktree path so it commits. Run `fullVerify` and check the exit codes. Re-review only if the fixes were substantial.
 
 ## 6. Report

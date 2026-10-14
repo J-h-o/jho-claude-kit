@@ -2,10 +2,11 @@
 // Links this kit into ~/.claude without the plugin system, for machines whose
 // policy only allows plugins from approved marketplaces.
 //
-//   node install.js              link skills, agents and workflows, register hooks + statusline
+//   node install.js              link the skills and agents, register hooks + statusline
 //   node install.js --uninstall  remove exactly what install added
 //
-// Skills, agents and workflows are symlinks, so `git pull` in this repo updates them in place.
+// Only folders are linked, so `git pull` in this repo updates them in place, and Windows makes
+// them as junctions, which need no Developer Mode. Claude Code finds agents in a subfolder.
 
 const fs = require('node:fs');
 const os = require('node:os');
@@ -37,11 +38,27 @@ const configDir = process.env.CLAUDE_CONFIG_DIR || path.join(os.homedir(), '.cla
 const settingsPath = path.join(configDir, 'settings.json');
 
 function links() {
-  return ['skills', 'agents', 'workflows'].flatMap((kind) =>
-    fs.readdirSync(path.join(KIT, kind)).map((name) => ({
-      source: path.join(KIT, kind, name),
-      target: path.join(configDir, kind, name),
-    })));
+  return [
+    ...fs.readdirSync(path.join(KIT, 'skills')).map((name) => ({
+      source: path.join(KIT, 'skills', name),
+      target: path.join(configDir, 'skills', name),
+    })),
+    { source: path.join(KIT, 'agents'), target: path.join(configDir, 'agents', 'jho-claude-kit') },
+  ];
+}
+
+// Versions before 1.11 linked each agent and the workflow as single files.
+function legacyLinks() {
+  return [
+    ...fs.readdirSync(path.join(KIT, 'agents')).map((name) => path.join('agents', name)),
+    path.join('workflows', 'jira-execute.js'),
+  ].map((file) => ({ source: path.join(KIT, file), target: path.join(configDir, file) }));
+}
+
+function removeOurLinks(linkList) {
+  for (const link of linkList) {
+    if (isOurLink(link)) fs.unlinkSync(link.target);
+  }
 }
 
 function isOurLink({ source, target }) {
@@ -90,18 +107,6 @@ function withoutKitHooks(hooks = {}) {
   return result;
 }
 
-// Windows creates directory junctions without special rights, but file symlinks need Developer Mode.
-function linkInto({ source, target }) {
-  const isDirectory = fs.statSync(source).isDirectory();
-  try {
-    fs.symlinkSync(source, target, isDirectory ? 'junction' : 'file');
-  } catch (error) {
-    if (error.code !== 'EPERM' || process.platform !== 'win32') throw error;
-    throw new Error('Windows refused to create a file symlink. Turn on Developer Mode (Settings > System > For developers) '
-      + 'and run the installer again, or load the kit as a plugin: claude --plugin-dir <this folder>');
-  }
-}
-
 function install() {
   const conflicts = links().filter((link) => occupied(link.target) && !isOurLink(link));
   if (conflicts.length > 0) {
@@ -123,18 +128,17 @@ function install() {
     console.log(`Kept your statusline. For the craft badge, use: ${STATUSLINE_COMMAND}`);
   }
 
+  removeOurLinks(legacyLinks());
   for (const link of links()) {
     fs.mkdirSync(path.dirname(link.target), { recursive: true });
-    if (!isOurLink(link)) linkInto(link);
+    if (!isOurLink(link)) fs.symlinkSync(link.source, link.target, 'junction');
   }
   saveSettings(before, after);
   console.log(`Installed into ${configDir}. Start a new session to load it.`);
 }
 
 function uninstall() {
-  for (const link of links()) {
-    if (isOurLink(link)) fs.unlinkSync(link.target);
-  }
+  removeOurLinks([...links(), ...legacyLinks()]);
 
   const before = readSettings();
   const after = { ...before, hooks: withoutKitHooks(before.hooks) };
