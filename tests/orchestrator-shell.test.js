@@ -26,6 +26,10 @@ test('git, verify, and app-runner commands pass, including shell scripting aroun
   }
 });
 
+test('a pipefail-guarded trim is allowed, so the exit code survives', () => {
+  assert.equal(isOrchestratorCommand('set -o pipefail; npm test 2>&1 | tail -40'), true);
+});
+
 test('reading, editing, or probing through the shell is refused', () => {
   for (const command of ["sed -i 's/a/b/' src/app.ts", 'cat src/app.ts', 'curl -s http://localhost:8080',
     'python3 -c "print(1)"', 'git diff && cat src/app.ts', 'npm test; node -e "1"', 'git log $(cat .env)',

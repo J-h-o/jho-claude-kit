@@ -44,6 +44,7 @@ test('during a run, the main session is told to delegate', () => {
   assert.match(reason, /scout/);
   assert.match(reason, /investigator/);
   assert.match(reason, /\/jira-task done/);
+  assert.match(reason, /set -o pipefail;/);
 });
 
 test('subagents are never blocked', () => {
