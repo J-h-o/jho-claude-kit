@@ -17,7 +17,8 @@ const STALE_RUN_MS = 7 * 24 * 60 * 60 * 1000;
 const DENY_REASON = 'jira-task run: the orchestrator does not read, search, edit, probe, or browse itself. '
   + 'Delegate instead: `scout` to find code, `investigator` to debug, reproduce, or use the browser, '
   + '`implementer` to change code. Bash is limited to git, test/build/app runners (npm, npx, mvn, gradle, pytest, flutter, '
-  + 'docker, pm2, ...) and the shell around them, with output going to temp files or filters such as tail/grep. '
+  + 'docker, pm2, ...) and the shell around them, with output going to temp files or filters such as tail/grep '
+  + '(start piped commands with `set -o pipefail;` so the exit code survives). '
   + 'If the user wants you to do it yourself, they end the run with /jira-task done.';
 const SECOND_TICKET_NOTE = 'This session already ran a /jira-task, and all of its context is carried into this ticket, '
   + 'making every turn more expensive. Before starting, recommend that the user runs this ticket in a new session; '
